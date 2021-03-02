@@ -1,9 +1,9 @@
 #' MCM.Summary
 #'
-#' final quantity presentation (output) MC GUM suppl2
+#' final quantity presentation (output) MC GUM supplement 2
 #'
-#' @param output output quantity
-#' @param p coverage probability
+#' @param output [matrix] (**required**) output quantity
+#' @param p [integer] (**required**) coverage probability
 #'
 #'
 #' importFrom ("graphics", "contour")
@@ -12,11 +12,11 @@
 #' @return alist object with the following elements
 #' @return $output.sort
 #' @return $esp.sort
-#' @return dev.sort
-#' @return cov.map
-#' @return map.p
-#' @return low.cov
-#' @return high.cov
+#' @return $dev.sort
+#' @return $cov.map
+#' @return $map.p
+#' @return $low.cov high coverage value
+#' @return $high.cov low coverage value
 #'
 #'
 #' @export
