@@ -1,13 +1,9 @@
-#' MCM.Summary
+#' MCMC.Summary
 #'
 #' final quantity presentation (output) MC GUM supplement 2
 #'
 #' @param output [matrix] (**required**) output quantity
 #' @param p [integer] (**required**) coverage probability
-#'
-#'
-#' importFrom ("graphics", "contour")
-#' importFrom ("stats", "sd")
 #'
 #' @return alist object with the following elements
 #' @return $output.sort
@@ -20,9 +16,8 @@
 #'
 #'
 #' @export
-#'
-#' @examples
-MCM.Summary <-
+
+MCMC.Summary <-
 function (output,p){
 
 output<-output[-seq(1,10),] #the initial values are eliminated, in case there is no burn.in.

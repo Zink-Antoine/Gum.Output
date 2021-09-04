@@ -14,16 +14,16 @@
 #' @return low.cov
 #' @return high.cov
 #'
+#'
 #' @export
 #'
-#' @examples
 Output.Summary <-
 function (output,p){
 output.sort<-sort(output,decreasing = FALSE)
 # absolute growth test
 m<-length(output.sort)
 	while(length(m)>0){
-	output.diff<-output.sort-shift(output.sort,n=1)
+	output.diff<-output.sort-data.table::shift(output.sort,n=1)
 	m<-which(output.diff==0) #index where the deviation from the previous number is zero
 	output.sort[m]<-output.sort[m]+1e-128 #includes minimal disturbance
 }
