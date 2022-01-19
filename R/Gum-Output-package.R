@@ -6,6 +6,7 @@
 #' @name <GumOutput>
 #' @importFrom graphics contour
 #' @importFrom stats sd
+#' @importFrom coda varnames
 
 
 NULL

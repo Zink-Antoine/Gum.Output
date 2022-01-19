@@ -96,10 +96,10 @@ Taxs<-seq(min(output[,2]),max(output[,2]),length.out=y.range)
 Xaxs<-seq(min(output[,1]),max(output[,1]),length.out=x.range)
 
 mfcol=c(2, 2)
-contour(x=Xaxs,y=Taxs,output.map)
+#contour(x=Xaxs,y=Taxs,output.map)
 #plot(output[,1:2])
 
-#filled.contour(x=Xaxs,y=Taxs,output.map,plot.axes={ axis(1); axis(2); points(output[,1:2])})
+filled.contour(x=Xaxs,y=Taxs,output.map,plot.axes={ axis(1); axis(2); points(output[,1:2])})
 #filled.contour(x=Xaxs,y=Taxs,output.map.rank,plot.axes={axis(1); axis(2); lines(c(High[,1],High[,1],Low[,1],Low[,1],High[,1]),c(High[,2],Low[,2],Low[,2],High[,2],High[,2]))})
 
 return(list(output.sort=output,esp.sort=output.av,dev.sort=output.cov,map=output.map,map.p=output.map.rank,low.cov=Low,high.cov=High))
