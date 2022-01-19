@@ -2,5 +2,7 @@
 
 export(MCMC.Summary)
 export(Output.Summary)
+export(extrait)
+importFrom(coda,varnames)
 importFrom(graphics,contour)
 importFrom(stats,sd)
