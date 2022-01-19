@@ -4,9 +4,7 @@
 #'
 #' @docType package
 #' @name <GumOutput>
-#' @importFrom graphics contour
+#' @importFrom graphics contour filled.contour axis points
 #' @importFrom stats sd
-#' @importFrom coda varnames
-
 
 NULL

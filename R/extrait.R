@@ -2,17 +2,15 @@
 #' #(changer le nom)
 #'
 #' #function additional to prepare file for Gum.Output package
-#' #extract value between I1 and IZ in column n#rang
-#' #equivalent to limit data using a uniform prior U[I1,I2] on variable rang
+#' #extract value between I1 and I2 in column n#rang
+#' #equivalent to limit data using a uniform prior U{I1,I2} on variable rang
 #'
-#' @param data  [matrix][mcmc object] (**required**) a matrix of MCMC output
+#' @param data [matrix],[mcmc] (**required**) a matrix of MCMC output
 #' @param rang [numeric] (**with default value**) the column number
 #' @param I1 [numeric] (**with default value**) the inferior limit
 #' @param I2 [numeric] (**with default value**) the superior limit
 #'
 #' @return a matrix
-#'
-#' @importFrom coda varnames
 #'
 #' @export
 #'
