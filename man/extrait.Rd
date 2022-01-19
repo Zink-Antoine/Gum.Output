@@ -8,7 +8,7 @@
 extrait(data, rang = 5, I1 = -200, I2 = 100)
 }
 \arguments{
-\item{data}{\link[=mcmc object]{matrix} (\strong{required}) a matrix of MCMC output}
+\item{data}{\link{matrix},\link{mcmc} (\strong{required}) a matrix of MCMC output}
 
 \item{rang}{\link{numeric} (\strong{with default value}) the column number}
 
@@ -21,6 +21,6 @@ a matrix
 }
 \description{
 #function additional to prepare file for Gum.Output package
-#extract value between I1 and IZ in column n#rang
-#equivalent to limit data using a uniform prior U\link{I1,I2} on variable rang
+#extract value between I1 and I2 in column n#rang
+#equivalent to limit data using a uniform prior U{I1,I2} on variable rang
 }
