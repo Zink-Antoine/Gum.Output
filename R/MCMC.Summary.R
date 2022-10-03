@@ -4,8 +4,9 @@
 #'
 #' @param output [matrix] (**required**) output quantity
 #' @param p [integer] (**required**) coverage probability
+#' @param level [logical] (**with default**) if TRUE plot as color-level plot, instead a contour plot
 #'
-#' @return alist object with the following elements
+#' @return a list object with the following elements
 #' @return $output.sort
 #' @return $esp.sort
 #' @return $dev.sort
@@ -16,9 +17,23 @@
 #'
 #'
 #' @export
+#'
+#'
+#' @examples
+
+#' #
+#' if(dev.cur()!=1) dev.off()
+#' data(TLpan, envir = environment())
+#' Dose<-c(0,0,80,80,80,160,160,160)
+#' df.T<-matrix(rep(seq(26,500),8),475,8)
+#' df.y<-TL.Pan[,1:8]
+#' Pan<-Slice5(Dose,df.T,df.y,n.iter=1000,n.thin=2,inv=TRUE)
+#' #
+#' MCMC.Summary(Pan[,c(4,5)],p=0.95)
+
 
 MCMC.Summary <-
-function (output,p){
+function (output,p,level=TRUE){
 
 output<-output[-seq(1,10),] #the initial values are eliminated, in case there is no burn.in.
 m=ncol(output) #number of quantities
@@ -96,10 +111,13 @@ Taxs<-seq(min(output[,2]),max(output[,2]),length.out=y.range)
 Xaxs<-seq(min(output[,1]),max(output[,1]),length.out=x.range)
 
 mfcol=c(2, 2)
-#contour(x=Xaxs,y=Taxs,output.map)
-#plot(output[,1:2])
+if (!level) {contour(x=Xaxs,y=Taxs,output.map)}
+else {plot(output[,1:2])
 
-filled.contour(x=Xaxs,y=Taxs,output.map,plot.axes={ axis(1); axis(2); points(output[,1:2])})
+filled.contour(x=Xaxs,y=Taxs,output.map,plot.axes={axis(1); axis(2); points(output[,1:2]
+)},
+plot.title={title(xlab=colnames(output[,c(1,2)])[1],ylab=colnames(output[,c(1,2)])[2]) }
+               )}
 #filled.contour(x=Xaxs,y=Taxs,output.map.rank,plot.axes={axis(1); axis(2); lines(c(High[,1],High[,1],Low[,1],Low[,1],High[,1]),c(High[,2],Low[,2],Low[,2],High[,2],High[,2]))})
 
 return(list(output.sort=output,esp.sort=output.av,dev.sort=output.cov,map=output.map,map.p=output.map.rank,low.cov=Low,high.cov=High))
