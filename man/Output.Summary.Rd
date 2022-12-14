@@ -14,17 +14,17 @@ Output.Summary(output, p)
 \value{
 a list object with the following elements
 
-$output.sort
+$output.sort sorted output values (Gum suppl1 $7.5)
 
-$esp.sort
+$esp.sort estimate of the output quantity (Gum suppl1 $7.6)
 
-dev.sort
+$dev.sort estimate of the associated standard uncertainty (Gum suppl1 $7.6)
 
-cov.star
+$cov.star shortest coverage intervalle
 
-low.cov
+$low.cov low coverage intervalle value
 
-high.cov
+$high.cov high coverage intervalle value
 }
 \description{
 final quantity presentation (output) MC GUM suppl1

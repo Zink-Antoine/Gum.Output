@@ -4,14 +4,12 @@
 \alias{MCMC.Summary}
 \title{MCMC.Summary}
 \usage{
-MCMC.Summary(output, p, level = TRUE)
+MCMC.Summary(output, p)
 }
 \arguments{
 \item{output}{\link{matrix} (\strong{required}) output quantity}
 
 \item{p}{\link{integer} (\strong{required}) coverage probability}
-
-\item{level}{\link{logical} (\strong{with default}) if TRUE plot as color-level plot, instead a contour plot}
 }
 \value{
 a list object with the following elements
@@ -26,21 +24,10 @@ $cov.map
 
 $map.p
 
-$low.cov high coverage value
+$low.cov low coverage value
 
-$high.cov low coverage value
+$high.cov high coverage value
 }
 \description{
 final quantity presentation (output) MC GUM supplement 2
-}
-\examples{
-#
-if(dev.cur()!=1) dev.off()
-data(TLpan, envir = environment())
-Dose<-c(0,0,80,80,80,160,160,160)
-df.T<-matrix(rep(seq(26,500),8),475,8)
-df.y<-TL.Pan[,1:8]
-Pan<-Slice5(Dose,df.T,df.y,n.iter=1000,n.thin=2,inv=TRUE)
-#
-MCMC.Summary(Pan[,c(4,5)],p=0.95)
 }
