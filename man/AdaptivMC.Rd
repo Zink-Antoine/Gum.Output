@@ -22,6 +22,10 @@ AdaptivMC(nOutput = 2, ndig = 2, p = 0.95, FUN, n.iter = 10^4, ...)
 \value{
 a list including
 
+ndig \link{integer} number of significant decimal digits
+
+M \link{integer} the number of draws M= h x n.iter (h number of simulation and n.iter number of iteration for each simulation)
+
 y \link{vector} an estimate of measurand Y
 
 uy \link{vector} the standard uncertainties associated with the estimates,
@@ -29,13 +33,32 @@ uy \link{vector} the standard uncertainties associated with the estimates,
 Ry \link{matrix} correlation coefficients rij = r(yi, yj) associated with pairs of the estimates,
 
 kp \link{integer} a coverage factor defining a 100p \% coverage region for Y,
+
+Chain \link{mcmc} list of the simulations
 }
 \description{
 adapted from GUM suppl.2
 7.8 Adaptive Monte Carlo procedure
 }
 \examples{
+
+## example 9.2.2 GUM suppl.2 case1
+Model<-
+function(n.iter){
+X1<-rnorm(n.iter,0,1)
+X2<-rnorm(n.iter,0,1)
+X3<-rnorm(n.iter,0,1)
+Y1<-X1+X3
+Y2<-X2+X3
+cbind(Y1,Y2)
+}
+
+AdaptivMC(nOutput=2,ndig=3,p=0.95,FUN=Model,n.iter=1000)
+
+
 \dontrun{
+require(TLpack)
+
 data(TLetru)
 table<-Lum(TLetru,Doseb0=360,Dosea=0,alpha=FALSE,supra=FALSE)
 B<-table$b
