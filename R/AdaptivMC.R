@@ -12,17 +12,37 @@
 #'
 #'
 #' @return a list including
+#' @return ndig [integer] number of significant decimal digits
+#' @return M [integer] the number of draws M= h x n.iter (h number of simulation and n.iter number of iteration for each simulation)
 #' @return y [vector] an estimate of measurand Y
 #' @return uy [vector] the standard uncertainties associated with the estimates,
 #' @return Ry [matrix] correlation coefficients rij = r(yi, yj) associated with pairs of the estimates,
 #' @return kp [integer] a coverage factor defining a 100p % coverage region for Y,
+#' @return Chain [mcmc] list of the simulations
 #'
 #' @export
 #'
 #' @references JCGM-WG1 (2011) data – Supplement 2 to the “Guide to the expression of uncertainty in measurement” – Extension to any number of output quantities. Guide JCGM 102:2011. Sèvres: BIPM, IEC, IFCC, ILAC, ISO, IUPAC, IUPAP and OIML.
 #'
 #' @examples
+#'
+#' ## example 9.2.2 GUM suppl.2 case1
+#' Model<-
+#' function(n.iter){
+#' X1<-rnorm(n.iter,0,1)
+#' X2<-rnorm(n.iter,0,1)
+#' X3<-rnorm(n.iter,0,1)
+#' Y1<-X1+X3
+#' Y2<-X2+X3
+#' cbind(Y1,Y2)
+#' }
+#'
+#' AdaptivMC(nOutput=2,ndig=3,p=0.95,FUN=Model,n.iter=1000)
+#'
+#'
 #' \dontrun{
+#' require(TLpack)
+#'
 #' data(TLetru)
 #' table<-Lum(TLetru,Doseb0=360,Dosea=0,alpha=FALSE,supra=FALSE)
 #' B<-table$b
@@ -59,32 +79,34 @@ AdaptivMC<-
     R_h<-vector(mode="list",length=10)
     EigenMax_h<-array(dim=10)
     kp_h<-array(dim=10)
+    trial_h<-vector(mode="list",length=10)
 
-    h<-1
+    h<-0
     #d) carry out M Monte Carlo trials, as in 7.3 and 7.4;
     #e) use the M vector output quantity values y1,..,yM so obtained to calculate y(h), u(y(h)), Ry(h) and k(h) p as an estimate of Y , the associated standard uncertainties, the associated correlation matrix and a coverage factor for a 100p % coverage region, respectively, i.e. for the hth member of the sequence;
     # f) if h ≤ 10, increase h by one and return to step d);
 
-    AdaptivMC_Boucle(M,h,Y_h,U_h,R_h,EigenMax_h,kp_h,ndig,nOutput,p,FUN,n.iter=M,...)
+    AdaptivMC_Boucle(h,Y_h,U_h,R_h,EigenMax_h,kp_h,trial_h,ndig,nOutput,p,FUN,n.iter=M,...)
     }
 
 
 AdaptivMC_Boucle<-
-  function(M,h,Y_h,U_h,R_h,EigenMax_h,kp_h,ndig,nOutput,p,FUN,...){
+  function(h,Y_h,U_h,R_h,EigenMax_h,kp_h,trial_h,ndig,nOutput,p,FUN,n.iter,...){
 
-    trial<-FUN(...) #MC model
+    trial<-FUN(n.iter,...) #MC model
     trial<-RemoveOutliers(trial)
+
+    h<-h+1
+    #print(h)
 
     Y_h[h,]<-colMeans(trial)
     U_h[h,]<-apply(trial,2,sd)
     R_h[[h]]<-cor(trial)
     EigenMax_h[h]<-max(eigen(R_h[[h]],only.values = TRUE)$value)
     kp_h[h]<-CovFac(cov(trial),trial,p)
+    trial_h[[h]]<-trial
 
-    h<-h+1
-    #print(h)
-
-    if (h<11) Recall(M=M,h=h,Y_h=Y_h,U_h=U_h,R_h=R_h,EigenMax_h=EigenMax_h,kp_h=kp_h,ndig=ndig,nOutput=nOutput,p=p,FUN=FUN,...=...)
+    if (h<10) Recall(h=h,Y_h=Y_h,U_h=U_h,R_h=R_h,EigenMax_h=EigenMax_h,kp_h=kp_h,trial_h=trial_h,ndig=ndig,nOutput=nOutput,p=p,FUN=FUN,n.iter=n.iter,...=...)
     else
     {
       #g) for j = 1,...m, calculate the standard deviation syj associated with the average of the estimates yj,
@@ -116,31 +138,23 @@ AdaptivMC_Boucle<-
 
       #if for any j = 1, . . . , m, 2syj or 2su(yj) exceeds δj, or 2sλmax exceeds ρ, or 2skp exceeds κp, increase h by one and return to step d)
       if(any(2*sy>delta,2*suy>delta,2*sEigenMax>rho,2*skp>kap)){
-        Y_h.new<-matrix(nrow=h,ncol=nOutput)
-        U_h.new<-matrix(nrow=h,ncol=nOutput)
-        R_h.new<-vector(mode="list",length=h)
-        EigenMax_h.new<-array(dim=h)
-        kp_h.new<-array(dim=h)
+        Y_h.new<-matrix(nrow=h+1,ncol=nOutput)
+        U_h.new<-matrix(nrow=h+1,ncol=nOutput)
 
-        Y_h.new[seq(1,h-1),]<-Y_h
-        U_h.new[seq(1,h-1),]<-U_h
-        R_h.new[seq(1,h-1)]<-R_h
-        EigenMax_h.new[seq(1,h-1)]<-EigenMax_h
-        kp_h.new[seq(1,h-1)]<-kp_h
+        Y_h.new[seq(1,h),]<-Y_h
+        U_h.new[seq(1,h),]<-U_h
 
         Y_h<-Y_h.new
         U_h<-U_h.new
-        R_h<-R_h.new
-        EigenMax_h<-EigenMax_h.new
-        kp_h<-kp_h.new
 
-        Recall(M=M,h=h,Y_h=Y_h,U_h=U_h,R_h=R_h,EigenMax_h=EigenMax_h,kp_h=kp_h,ndig=ndig,nOutput=nOutput,p=p,FUN=FUN,... = ...)
-      }
+        Recall(h=h,Y_h=Y_h,U_h=U_h,R_h=R_h,EigenMax_h=EigenMax_h,kp_h=kp_h,trial_h=trial_h,ndig=ndig,nOutput=nOutput,p=p,FUN=FUN,n.iter=n.iter,...=...)
+
+        }
       else{
         Ry<-array(dim=c(nOutput,nOutput))
         Ry<-Reduce("+",R_h)/length(R_h)
 
-        return(list(ndig=ndig,h=h,y=y,uy=uy,Ry=Ry,kp=kp))
+        return(list(ndig=ndig,M=h*n.iter,y=y,uy=uy,Ry=Ry,kp=kp,Chain=as.mcmc.list(trial_h)))
       }
     }
   }
