@@ -6,6 +6,7 @@
 #' @param nOutput [integer] (**with default value**) number of model output(default nOutput=2)
 #' @param ndig [integer] (**with default value**) number of significant decimal digits (default ndig=2)
 #' @param p [integer] (**with default value**) coverage probability (default p= 0.95)
+#' @param outliers [logical](**with default**) logical parameters indicating whether or not outliers are discarded. TRUE, the outliers are keeping, FALSE, the outliers are rejected ( default outliers=TRUE) 
 #' @param FUN [function] (**required**) a simulation MC model
 #' @param n.iter [integer] (**with default**) number of iteration for each simulation (default n.iter= 1e4)
 #' @param ... further parameters passed to the FUN function
@@ -26,6 +27,7 @@
 #'
 #' @examples
 #'
+#' \dontrun{
 #' ## example 9.2.2 GUM suppl.2 case1
 #' Model<-
 #' function(n.iter){
@@ -38,7 +40,7 @@
 #' }
 #'
 #' AdaptivMC(nOutput=2,ndig=3,p=0.95,FUN=Model,n.iter=1000)
-#'
+#' }
 #'
 #' \dontrun{
 #' require(TLpack)
@@ -60,13 +62,13 @@
 #'  Dose<-as.numeric(colnames(table.data))
 #'  df.T<-matrix(rep(seq(26,500),9),475,9)
 #'  df.y<-table.data[,1:9]
-#' AdaptivMC(nOutput=5,ndig=2,FUN=Slice5,Dose=Dose,df.T=df.T,df.y=df.y,n.thin=1)
+#' AdaptivMC(nOutput=5,ndig=2,outliers=FALSE,FUN=Slice5,Dose=Dose,df.T=df.T,df.y=df.y,n.thin=1)
 #' }
 #'
 
 
 AdaptivMC<-
-  function(nOutput=2,ndig=2,p=0.95,FUN,n.iter=10^4,...){
+  function(nOutput=2,ndig=2,p=0.95,outliers=TRUE,FUN,n.iter=10^4,...){
     #7.8.3 Adaptive procedure
     # a) set ndig to an appropriate small positive integer (see 7.8.2);
     ndig<-ndig
@@ -86,15 +88,15 @@ AdaptivMC<-
     #e) use the M vector output quantity values y1,..,yM so obtained to calculate y(h), u(y(h)), Ry(h) and k(h) p as an estimate of Y , the associated standard uncertainties, the associated correlation matrix and a coverage factor for a 100p % coverage region, respectively, i.e. for the hth member of the sequence;
     # f) if h ≤ 10, increase h by one and return to step d);
 
-    AdaptivMC_Boucle(h,Y_h,U_h,R_h,EigenMax_h,kp_h,trial_h,ndig,nOutput,p,FUN,n.iter=M,...)
+    AdaptivMC_Boucle(h,Y_h,U_h,R_h,EigenMax_h,kp_h,trial_h,ndig,nOutput,p,outliers,FUN,n.iter=M,...)
     }
 
 
 AdaptivMC_Boucle<-
-  function(h,Y_h,U_h,R_h,EigenMax_h,kp_h,trial_h,ndig,nOutput,p,FUN,n.iter,...){
+  function(h,Y_h,U_h,R_h,EigenMax_h,kp_h,trial_h,ndig,nOutput,p,outliers,FUN,n.iter,...){
 
     trial<-FUN(n.iter,...) #MC model
-    trial<-RemoveOutliers(trial)
+    if (!outliers) trial<-RemoveOutliers(trial)
 
     h<-h+1
     #print(h)
@@ -106,7 +108,7 @@ AdaptivMC_Boucle<-
     kp_h[h]<-CovFac(cov(trial),trial,p)
     trial_h[[h]]<-trial
 
-    if (h<10) Recall(h=h,Y_h=Y_h,U_h=U_h,R_h=R_h,EigenMax_h=EigenMax_h,kp_h=kp_h,trial_h=trial_h,ndig=ndig,nOutput=nOutput,p=p,FUN=FUN,n.iter=n.iter,...=...)
+    if (h<10) Recall(h=h,Y_h=Y_h,U_h=U_h,R_h=R_h,EigenMax_h=EigenMax_h,kp_h=kp_h,trial_h=trial_h,ndig=ndig,nOutput=nOutput,p=p,outliers=outliers,FUN=FUN,n.iter=n.iter,...=...)
     else
     {
       #g) for j = 1,...m, calculate the standard deviation syj associated with the average of the estimates yj,
@@ -147,14 +149,14 @@ AdaptivMC_Boucle<-
         Y_h<-Y_h.new
         U_h<-U_h.new
 
-        Recall(h=h,Y_h=Y_h,U_h=U_h,R_h=R_h,EigenMax_h=EigenMax_h,kp_h=kp_h,trial_h=trial_h,ndig=ndig,nOutput=nOutput,p=p,FUN=FUN,n.iter=n.iter,...=...)
+        Recall(h=h,Y_h=Y_h,U_h=U_h,R_h=R_h,EigenMax_h=EigenMax_h,kp_h=kp_h,trial_h=trial_h,ndig=ndig,nOutput=nOutput,p=p,outliers=outliers,FUN=FUN,n.iter=n.iter,...=...)
 
         }
       else{
         Ry<-array(dim=c(nOutput,nOutput))
         Ry<-Reduce("+",R_h)/length(R_h)
 
-        return(list(ndig=ndig,M=h*n.iter,y=y,uy=uy,Ry=Ry,kp=kp,Chain=as.mcmc.list(trial_h)))
+        return(list(ndig=ndig,M=h*n.iter,y=y,uy=uy,Ry=Ry,kp=kp,Chain=trial_h))
       }
     }
   }
