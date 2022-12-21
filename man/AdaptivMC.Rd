@@ -4,7 +4,15 @@
 \alias{AdaptivMC}
 \title{Adaptive MC procedure}
 \usage{
-AdaptivMC(nOutput = 2, ndig = 2, p = 0.95, FUN, n.iter = 10^4, ...)
+AdaptivMC(
+  nOutput = 2,
+  ndig = 2,
+  p = 0.95,
+  outliers = TRUE,
+  FUN,
+  n.iter = 10^4,
+  ...
+)
 }
 \arguments{
 \item{nOutput}{\link{integer} (\strong{with default value}) number of model output(default nOutput=2)}
@@ -12,6 +20,8 @@ AdaptivMC(nOutput = 2, ndig = 2, p = 0.95, FUN, n.iter = 10^4, ...)
 \item{ndig}{\link{integer} (\strong{with default value}) number of significant decimal digits (default ndig=2)}
 
 \item{p}{\link{integer} (\strong{with default value}) coverage probability (default p= 0.95)}
+
+\item{outliers}{\link{logical}(\strong{with default}) logical parameters indicating whether or not outliers are discarded. TRUE, the outliers are keeping, FALSE, the outliers are rejected ( default outliers=TRUE)}
 
 \item{FUN}{\link{function} (\strong{required}) a simulation MC model}
 
@@ -42,6 +52,7 @@ adapted from GUM suppl.2
 }
 \examples{
 
+\dontrun{
 ## example 9.2.2 GUM suppl.2 case1
 Model<-
 function(n.iter){
@@ -54,7 +65,7 @@ cbind(Y1,Y2)
 }
 
 AdaptivMC(nOutput=2,ndig=3,p=0.95,FUN=Model,n.iter=1000)
-
+}
 
 \dontrun{
 require(TLpack)
@@ -76,7 +87,7 @@ table.norm<-B
  Dose<-as.numeric(colnames(table.data))
  df.T<-matrix(rep(seq(26,500),9),475,9)
  df.y<-table.data[,1:9]
-AdaptivMC(nOutput=5,ndig=2,FUN=Slice5,Dose=Dose,df.T=df.T,df.y=df.y,n.thin=1)
+AdaptivMC(nOutput=5,ndig=2,outliers=FALSE,FUN=Slice5,Dose=Dose,df.T=df.T,df.y=df.y,n.thin=1)
 }
 
 }
