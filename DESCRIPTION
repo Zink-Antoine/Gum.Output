@@ -15,4 +15,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
     coda,
-    data.table
+    data.table,
+    graphics,
+    mcmc,
+    stats
