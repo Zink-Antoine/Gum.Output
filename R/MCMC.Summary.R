@@ -4,7 +4,7 @@
 #'
 #' @param output [matrix] (**required**) output quantity
 #' @param p [integer] (**required**) coverage probability
-#' @param level [logical] (**with default**) if TRUE plot as color-level plot, instead a contour plot
+#' @param level [logical] (**with default**) if TRUE plot as color-level plot, instead a contour plot (default value =TRUE)
 #'
 #' @return a list object with the following elements
 #' @return $output.sort
@@ -20,7 +20,8 @@
 #'
 #'
 #' @examples
-
+#' 
+#' \dontrun{
 #' #
 #' if(dev.cur()!=1) dev.off()
 #' data(TLpan, envir = environment())
@@ -30,6 +31,7 @@
 #' Pan<-Slice5(Dose,df.T,df.y,n.iter=1000,n.thin=2,inv=TRUE)
 #' #
 #' MCMC.Summary(Pan[,c(4,5)],p=0.95)
+#' }
 
 
 MCMC.Summary <-

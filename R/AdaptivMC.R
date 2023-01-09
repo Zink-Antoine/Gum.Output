@@ -19,7 +19,9 @@
 #' @return uy [vector] the standard uncertainties associated with the estimates,
 #' @return Ry [matrix] correlation coefficients rij = r(yi, yj) associated with pairs of the estimates,
 #' @return kp [integer] a coverage factor defining a 100p % coverage region for Y,
-#' @return Chain [mcmc] list of the simulations
+#' 
+#' @return as stored file
+#' @return trial_h [mcmc] list of the simulations
 #'
 #' @export
 #'
@@ -27,7 +29,7 @@
 #'
 #' @examples
 #'
-#' \dontrun{
+#' 
 #' ## example 9.2.2 GUM suppl.2 case1
 #' Model<-
 #' function(n.iter){
@@ -40,7 +42,27 @@
 #' }
 #'
 #' AdaptivMC(nOutput=2,ndig=3,p=0.95,FUN=Model,n.iter=1000)
+#' 
+#' 
+#' \dontrun{
+#' AR(1) example
+#' AR1<-
+#' function(n.iter,rho=1,sig=1){
+#'  X<-Xn<-rnorm(1,0,sig)
+#'  Y<-0
+#'  for (i in 2:n.iter){
+#'    Yn<-rnorm(1,0,sig)
+#'    Xn<-rho*Xn+Yn
+#'    X<-rbind(X,Xn)
+#'    Y<-rbind(Y,Yn)
+#'  }
+#'  out<-cbind(X,Y)
 #' }
+#' 
+#' AdaptivMC(nOutput=2,ndig=2,p=0.95,FUN=AR1,n.iter=1000,rho=0.99)
+#'
+#' }
+#'
 #'
 #' \dontrun{
 #' require(TLpack)
@@ -88,14 +110,14 @@ AdaptivMC<-
     #e) use the M vector output quantity values y1,..,yM so obtained to calculate y(h), u(y(h)), Ry(h) and k(h) p as an estimate of Y , the associated standard uncertainties, the associated correlation matrix and a coverage factor for a 100p % coverage region, respectively, i.e. for the hth member of the sequence;
     # f) if h ≤ 10, increase h by one and return to step d);
 
-    AdaptivMC_Boucle(h,Y_h,U_h,R_h,EigenMax_h,kp_h,trial_h,ndig,nOutput,p,outliers,FUN,n.iter=M,...)
+    AdaptivMC_Boucle(h,Y_h,U_h,R_h,EigenMax_h,kp_h,trial_h,ndig,nOutput,p,outliers,FUN=FUN,n.iter=M,...)
     }
 
 
 AdaptivMC_Boucle<-
   function(h,Y_h,U_h,R_h,EigenMax_h,kp_h,trial_h,ndig,nOutput,p,outliers,FUN,n.iter,...){
 
-    trial<-FUN(n.iter,...) #MC model
+    trial<-FUN(n.iter=n.iter,...) #MC model
     if (!outliers) trial<-RemoveOutliers(trial)
 
     h<-h+1
@@ -113,17 +135,18 @@ AdaptivMC_Boucle<-
     {
       #g) for j = 1,...m, calculate the standard deviation syj associated with the average of the estimates yj,
       y<-colMeans(Y_h)
-      sy<-apply(Y_h,2,sd)/h
+     # sy<-apply(Y_h,2,sd)/sqrt(h)
+      sy<-sqrt(sapply(apply(Y_h,2,initseq),function(x){x$var.con})/h)
 
       #h) calculate the counterpart of this statistic for the components of u(y(h)) and for λmax and k(h) p;
       uy<-colMeans(U_h)
-      suy<-apply(U_h,2,sd)/h
+      suy<-apply(U_h,2,sd)/sqrt(h)
 
       EigenMax<-mean(EigenMax_h)
-      sEigenMax<-sd(EigenMax_h)/h
+      sEigenMax<-sd(EigenMax_h)/sqrt(h)
 
       kp<-mean(kp_h)
-      skp<-sd(kp_h)/h
+      skp<-sd(kp_h)/sqrt(h)
 
       #i) use all h × M model values available so far to form values for u(y), Ry and kp;
 
@@ -149,14 +172,18 @@ AdaptivMC_Boucle<-
         Y_h<-Y_h.new
         U_h<-U_h.new
 
+        save(trial_h,file=sprintf("chain%03d.rda",h))
+        
         Recall(h=h,Y_h=Y_h,U_h=U_h,R_h=R_h,EigenMax_h=EigenMax_h,kp_h=kp_h,trial_h=trial_h,ndig=ndig,nOutput=nOutput,p=p,outliers=outliers,FUN=FUN,n.iter=n.iter,...=...)
 
         }
       else{
         Ry<-array(dim=c(nOutput,nOutput))
         Ry<-Reduce("+",R_h)/length(R_h)
+        
+        save(trial_h,file=sprintf("chain%03d.rda",h))
 
-        return(list(ndig=ndig,M=h*n.iter,y=y,uy=uy,Ry=Ry,kp=kp,Chain=trial_h))
+        return(list(ndig=ndig,M=h*n.iter,y=y,uy=uy,Ry=Ry,kp=kp))
       }
     }
   }
@@ -200,3 +227,13 @@ CovFac<-
     #d) Take the hyper-ellipsoid defined by equation (20) as the boundary of a 100p % coverage region for Y .
 
   }
+
+####### modified from Geyer (2011)
+
+LoadChain<-
+  function(){
+    files<-list.files(pattern="chain\\d+.rda")
+    kcheck<-length(files)
+    load(file=files[kcheck])
+  }
+
