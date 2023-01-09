@@ -44,7 +44,9 @@ Ry \link{matrix} correlation coefficients rij = r(yi, yj) associated with pairs 
 
 kp \link{integer} a coverage factor defining a 100p \% coverage region for Y,
 
-Chain \link{mcmc} list of the simulations
+as stored file
+
+trial_h \link{mcmc object} list of the simulations
 }
 \description{
 adapted from GUM suppl.2
@@ -52,7 +54,7 @@ adapted from GUM suppl.2
 }
 \examples{
 
-\dontrun{
+
 ## example 9.2.2 GUM suppl.2 case1
 Model<-
 function(n.iter){
@@ -65,7 +67,27 @@ cbind(Y1,Y2)
 }
 
 AdaptivMC(nOutput=2,ndig=3,p=0.95,FUN=Model,n.iter=1000)
+
+
+\dontrun{
+AR(1) example
+AR1<-
+function(n.iter,rho=1,sig=1){
+ X<-Xn<-rnorm(1,0,sig)
+ Y<-0
+ for (i in 2:n.iter){
+   Yn<-rnorm(1,0,sig)
+   Xn<-rho*Xn+Yn
+   X<-rbind(X,Xn)
+   Y<-rbind(Y,Yn)
+ }
+ out<-cbind(X,Y)
 }
+
+AdaptivMC(nOutput=2,ndig=2,p=0.95,FUN=AR1,n.iter=1000,rho=0.99)
+
+}
+
 
 \dontrun{
 require(TLpack)
