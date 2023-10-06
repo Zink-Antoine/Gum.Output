@@ -6,9 +6,10 @@
 #' @param nOutput [integer] (**with default value**) number of model output(default nOutput=2)
 #' @param ndig [integer] (**with default value**) number of significant decimal digits (default ndig=2)
 #' @param p [integer] (**with default value**) coverage probability (default p= 0.95)
-#' @param outliers [logical](**with default**) logical parameters indicating whether or not outliers are discarded. TRUE, the outliers are keeping, FALSE, the outliers are rejected ( default outliers=TRUE) 
+#' @param outliers [logical](**with default**) logical parameters indicating whether or not outliers are discarded. TRUE, the outliers are keeping, FALSE, the outliers are rejected ( default outliers=TRUE)
 #' @param FUN [function] (**required**) a simulation MC model
 #' @param n.iter [integer] (**with default**) number of iteration for each simulation (default n.iter= 1e4)
+#' @param MC [logical] (**with default value**) MC=TRUE Monte-Carlo simulation; MC=FALSE Martkov Chain Monte Carlo
 #' @param ... further parameters passed to the FUN function
 #'
 #'
@@ -19,17 +20,18 @@
 #' @return uy [vector] the standard uncertainties associated with the estimates,
 #' @return Ry [matrix] correlation coefficients rij = r(yi, yj) associated with pairs of the estimates,
 #' @return kp [integer] a coverage factor defining a 100p % coverage region for Y,
-#' 
+#'
 #' @return as stored file
 #' @return trial_h [mcmc] list of the simulations
 #'
 #' @export
 #'
 #' @references JCGM-WG1 (2011) data – Supplement 2 to the “Guide to the expression of uncertainty in measurement” – Extension to any number of output quantities. Guide JCGM 102:2011. Sèvres: BIPM, IEC, IFCC, ILAC, ISO, IUPAC, IUPAP and OIML.
+#' @references Geyer, C. (2011) Introduction to Markov Chain Monte Carlo, in: Handbook of Markov Chain Monte Carlo. pp. 3–48.
 #'
 #' @examples
 #'
-#' 
+#'
 #' ## example 9.2.2 GUM suppl.2 case1
 #' Model<-
 #' function(n.iter){
@@ -42,8 +44,8 @@
 #' }
 #'
 #' AdaptivMC(nOutput=2,ndig=3,p=0.95,FUN=Model,n.iter=1000)
-#' 
-#' 
+#'
+#'
 #' \dontrun{
 #' AR(1) example
 #' AR1<-
@@ -58,7 +60,7 @@
 #'  }
 #'  out<-cbind(X,Y)
 #' }
-#' 
+#'
 #' AdaptivMC(nOutput=2,ndig=2,p=0.95,FUN=AR1,n.iter=1000,rho=0.99)
 #'
 #' }
@@ -90,7 +92,7 @@
 
 
 AdaptivMC<-
-  function(nOutput=2,ndig=2,p=0.95,outliers=TRUE,FUN,n.iter=10^4,...){
+  function(nOutput=2,ndig=2,p=0.95,outliers=TRUE,FUN,n.iter=10^4,MC=TRUE,...){
     #7.8.3 Adaptive procedure
     # a) set ndig to an appropriate small positive integer (see 7.8.2);
     ndig<-ndig
@@ -105,24 +107,19 @@ AdaptivMC<-
     kp_h<-array(dim=10)
     trial_h<-vector(mode="list",length=10)
 
-    h<-0
-    #d) carry out M Monte Carlo trials, as in 7.3 and 7.4;
-    #e) use the M vector output quantity values y1,..,yM so obtained to calculate y(h), u(y(h)), Ry(h) and k(h) p as an estimate of Y , the associated standard uncertainties, the associated correlation matrix and a coverage factor for a 100p % coverage region, respectively, i.e. for the hth member of the sequence;
-    # f) if h ≤ 10, increase h by one and return to step d);
+    h<-1
 
-    AdaptivMC_Boucle(h,Y_h,U_h,R_h,EigenMax_h,kp_h,trial_h,ndig,nOutput,p,outliers,FUN=FUN,n.iter=M,...)
+    AdaptivMC_Boucle(h,Y_h,U_h,R_h,EigenMax_h,kp_h,trial_h,ndig,nOutput,p,outliers,FUN=FUN,n.iter=M,MC=MC,...)
     }
 
 
 AdaptivMC_Boucle<-
-  function(h,Y_h,U_h,R_h,EigenMax_h,kp_h,trial_h,ndig,nOutput,p,outliers,FUN,n.iter,...){
-
+  function(h,Y_h,U_h,R_h,EigenMax_h,kp_h,trial_h,ndig,nOutput,p,outliers,FUN,n.iter,MC,...){
+    #d) carry out M Monte Carlo trials, as in 7.3 and 7.4;
     trial<-FUN(n.iter=n.iter,...) #MC model
     if (!outliers) trial<-RemoveOutliers(trial)
 
-    h<-h+1
-    #print(h)
-
+    #e) use the M vector output quantity values y1,..,yM so obtained to calculate y(h), u(y(h)), Ry(h) and k(h) p as an estimate of Y , the associated standard uncertainties, the associated correlation matrix and a coverage factor for a 100p % coverage region, respectively, i.e. for the hth member of the sequence;
     Y_h[h,]<-colMeans(trial)
     U_h[h,]<-apply(trial,2,sd)
     R_h[[h]]<-cor(trial)
@@ -130,15 +127,18 @@ AdaptivMC_Boucle<-
     kp_h[h]<-CovFac(cov(trial),trial,p)
     trial_h[[h]]<-trial
 
-    if (h<10) Recall(h=h,Y_h=Y_h,U_h=U_h,R_h=R_h,EigenMax_h=EigenMax_h,kp_h=kp_h,trial_h=trial_h,ndig=ndig,nOutput=nOutput,p=p,outliers=outliers,FUN=FUN,n.iter=n.iter,...=...)
+    # f) if h ≤ 10, increase h by one and return to step d);
+    if (h<10) { h<-h+1;
+                Recall(h=h,Y_h=Y_h,U_h=U_h,R_h=R_h,EigenMax_h=EigenMax_h,kp_h=kp_h,trial_h=trial_h,ndig=ndig,nOutput=nOutput,p=p,outliers=outliers,FUN=FUN,n.iter=n.iter,MC=MC,...=...)
+              }
     else
     {
       #g) for j = 1,...m, calculate the standard deviation syj associated with the average of the estimates yj,
       y<-colMeans(Y_h)
-     # sy<-apply(Y_h,2,sd)/sqrt(h)
-      sy<-sqrt(sapply(apply(Y_h,2,initseq),function(x){x$var.con})/h)
+     if (MC) sy<-apply(Y_h,2,sd)/sqrt(h)
+        else sy<-sqrt(sapply(apply(Y_h,2,initseq),function(x){x$var.con})/h)
 
-      #h) calculate the counterpart of this statistic for the components of u(y(h)) and for λmax and k(h) p;
+      #h) calculate the counterpart of this statistic for the components of u(y(h)) and for λmax and kp(h)
       uy<-colMeans(U_h)
       suy<-apply(U_h,2,sd)/sqrt(h)
 
@@ -150,7 +150,7 @@ AdaptivMC_Boucle<-
 
       #i) use all h × M model values available so far to form values for u(y), Ry and kp;
 
-      #for j = 1, . . m, calculate the numerical tolerances δj associated with u(yj) as in 7.8.2.1 and 7.8.2.2;
+      # j) for j = 1, . . m, calculate the numerical tolerances δj associated with u(yj) as in 7.8.2.1 and 7.8.2.2;
       delta<-lapply(uy,Tolerance,ndig)
 
       # k) calculate the numerical tolerance ρ associated with the matrix Ry of correlation coefficients
@@ -163,6 +163,7 @@ AdaptivMC_Boucle<-
 
       #if for any j = 1, . . . , m, 2syj or 2su(yj) exceeds δj, or 2sλmax exceeds ρ, or 2skp exceeds κp, increase h by one and return to step d)
       if(any(2*sy>delta,2*suy>delta,2*sEigenMax>rho,2*skp>kap)){
+
         Y_h.new<-matrix(nrow=h+1,ncol=nOutput)
         U_h.new<-matrix(nrow=h+1,ncol=nOutput)
 
@@ -173,17 +174,19 @@ AdaptivMC_Boucle<-
         U_h<-U_h.new
 
         save(trial_h,file=sprintf("chain%03d.rda",h))
-        
-        Recall(h=h,Y_h=Y_h,U_h=U_h,R_h=R_h,EigenMax_h=EigenMax_h,kp_h=kp_h,trial_h=trial_h,ndig=ndig,nOutput=nOutput,p=p,outliers=outliers,FUN=FUN,n.iter=n.iter,...=...)
+
+        h<-h+1
+
+        Recall(h=h,Y_h=Y_h,U_h=U_h,R_h=R_h,EigenMax_h=EigenMax_h,kp_h=kp_h,trial_h=trial_h,ndig=ndig,nOutput=nOutput,p=p,outliers=outliers,FUN=FUN,n.iter=n.iter,MC=MC,...=...)
 
         }
       else{
         Ry<-array(dim=c(nOutput,nOutput))
         Ry<-Reduce("+",R_h)/length(R_h)
-        
+
         save(trial_h,file=sprintf("chain%03d.rda",h))
 
-        return(list(ndig=ndig,M=h*n.iter,y=y,uy=uy,Ry=Ry,kp=kp))
+        return(list(ndig=ndig,M=h*n.iter,y=round(y,ndig),uy=round(uy,ndig),Ry=round(Ry,ndig),kp=round(kp,ndig)))
       }
     }
   }
@@ -234,6 +237,19 @@ LoadChain<-
   function(){
     files<-list.files(pattern="chain\\d+.rda")
     kcheck<-length(files)
-    load(file=files[kcheck])
+    trial<-load(file=files[kcheck])
+    get(trial)
   }
+
+h<-length(trial)
+y<-sapply(trial,colMeans)
+Y<-rowMeans(y)
+sy_mc<-apply(y,1,sd)/sqrt(h)
+sy_mcmc<-sqrt(sapply(apply(y,1,initseq),function(x){x$var.con})/h)
+
+uy<-sapply(trial,function(x){apply(x,2,sd)})
+Uy<-rowMeans(uy)
+suy<-apply(uy,1,sd)/sqrt(h)
+
+
 
