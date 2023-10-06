@@ -11,6 +11,7 @@ AdaptivMC(
   outliers = TRUE,
   FUN,
   n.iter = 10^4,
+  MC = TRUE,
   ...
 )
 }
@@ -26,6 +27,8 @@ AdaptivMC(
 \item{FUN}{\link{function} (\strong{required}) a simulation MC model}
 
 \item{n.iter}{\link{integer} (\strong{with default}) number of iteration for each simulation (default n.iter= 1e4)}
+
+\item{MC}{\link{logical} (\strong{with default value}) MC=TRUE Monte-Carlo simulation; MC=FALSE Martkov Chain Monte Carlo}
 
 \item{...}{further parameters passed to the FUN function}
 }
@@ -46,7 +49,7 @@ kp \link{integer} a coverage factor defining a 100p \% coverage region for Y,
 
 as stored file
 
-trial_h \link{mcmc object} list of the simulations
+trial_h \link{mcmc} list of the simulations
 }
 \description{
 adapted from GUM suppl.2
@@ -115,4 +118,6 @@ AdaptivMC(nOutput=5,ndig=2,outliers=FALSE,FUN=Slice5,Dose=Dose,df.T=df.T,df.y=df
 }
 \references{
 JCGM-WG1 (2011) data – Supplement 2 to the “Guide to the expression of uncertainty in measurement” – Extension to any number of output quantities. Guide JCGM 102:2011. Sèvres: BIPM, IEC, IFCC, ILAC, ISO, IUPAC, IUPAP and OIML.
+
+Geyer, C. (2011) Introduction to Markov Chain Monte Carlo, in: Handbook of Markov Chain Monte Carlo. pp. 3–48.
 }
