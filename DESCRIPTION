@@ -8,6 +8,8 @@ Authors@R:
            email = "antoine.zink@culture.gouv.fr",
            comment = c(ORCID = "https://orcid.org/0000-0001-7146-1101"))
 Description: Various function to analyze and plot OSL measurement using WinBUGS code.
+url: https://github.com/Zink-Antoine/Gum.Output
+BugReports: https://github.com/Zink-Antoine/Gum.Output/issues
 License: CeCILL-2 | file LICENSE
 Encoding: UTF-8
 LazyData: true
